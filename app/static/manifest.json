@@ -1,0 +1,9 @@
+{
+  "name": "Evaluación de Certificación",
+  "short_name": "Evaluación",
+  "display": "standalone",
+  "start_url": "/",
+  "background_color": "#061a30",
+  "theme_color": "#0a2540",
+  "icons": []
+}

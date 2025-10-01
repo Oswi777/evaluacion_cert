@@ -1,0 +1,88 @@
+{
+  "meta": {
+    "code": "HR-01-F08 R02",
+    "title": "Evaluación de Certificación",
+    "revisions": ["r1", "r2", "r3"], 
+    "sign_roles": ["jefe_inmediato","ing_calidad","ing_manufactura","seguridad_industrial","entrenamiento"],
+    "result_options": ["No aprobó","Re-entrenamiento","Re-ubicación","Aprobado"]
+  },
+  "general": [
+    {"key":"nombre","label":"Nombre del operador","is_required":true},
+    {"key":"no_empleado","label":"No. empleado","is_required":true},
+    {"key":"area","label":"Área","is_required":true},
+    {"key":"operacion","label":"Operación","is_required":true},
+    {"key":"no_operacion","label":"No. Operación","is_required":true},
+    {"key":"maquina","label":"Máquina","is_required":true},
+    {"key":"no_maquina","label":"No. Máquina","is_required":true},
+    {"key":"fecha_ingreso","label":"Fecha de ingreso","is_required":true},
+    {"key":"fecha_inicio_entrenamiento","label":"Fecha de inicio de entrenamiento","is_required":true},
+    {"key":"fecha_revision","label":"Fecha de revisión","is_required":true}
+  ],
+
+  "S": [
+    {"key":"s_q1","label":"El operador conoce su EPP en su área de trabajo","is_required":true},
+    {"key":"s_q2","label":"El operador sabe cuáles son las rutas de emergencia y puntos de reunión","is_required":true},
+    {"key":"s_q3","label":"El operador identifica el extintor más cercano a su área de trabajo","is_required":true},
+    {"key":"s_q4","label":"El operador conoce e identifica las principales fuentes de energía de la máquina (PLACARD)","is_required":true},
+    {"key":"s_q5","label":"El operador identifica y conoce los riesgos asociados a su operación","is_required":true},
+    {"key":"s_q6","label":"El operador conoce los objetivos y metas en seguridad y ambiental","is_required":true},
+    {"key":"s_q7","label":"El operador conoce en qué contenedor se colocan los residuos peligrosos y los no peligrosos","is_required":true},
+    {"key":"s_q8","label":"El operador conoce qué es un Impacto Ambiental y un Aspecto Ambiental","is_required":true},
+    {"key":"s_q9","label":"El operador sabe diferenciar entre un acto y una condición insegura","is_required":true},
+    {"key":"s_q10","label":"El operador sabe a quién acudir para reportar un riesgo que afecte su seguridad","is_required":true},
+    {"key":"s_q11","label":"El operador conoce la certificación OEA y C-TPAT Cadena de Suministros","is_required":true},
+    {"key":"s_q12","label":"El operador conoce la política ambiental de la empresa","is_required":true},
+    {"key":"s_q13","label":"El operador conoce el propósito de la hoja de puesta en marcha","is_required":true},
+    {"key":"s_q14","label":"El operador sabe de qué habla el sistema ISO 45001","is_required":true}
+  ],
+
+  "P": [
+    {"key":"p_q1","label":"El operador conoce puntos de lubricación de su máquina y almacén de aceites","is_required":true},
+    {"key":"p_q2","label":"El operador conoce y realiza el Encendido y Apagado de la Máquina","is_required":true},
+    {"key":"p_q3","label":"El operador conoce y realiza cómo dar un ciclo a la máquina y sus ajustes","is_required":true},
+    {"key":"p_q4","label":"El operador tiene el conocimiento del producto y del proceso: qué es y cómo se transforma","is_required":true},
+    {"key":"p_q5","label":"El operador conoce qué es el plan de control","is_required":true},
+    {"key":"p_q6","label":"El operador conoce el propósito y uso del diagrama de flujo","is_required":true},
+    {"key":"p_q7","label":"El operador conoce y realiza el Encendido y Apagado de la Máquina (verificado)","is_required":false},
+    {"key":"p_q8","label":"El operador conoce y realiza cómo dar un ciclo a la máquina y sus ajustes (verificado)","is_required":false},
+    {"key":"p_q9","label":"El operador conoce el proceso de liberación de la primera pieza","is_required":true},
+    {"key":"p_q10","label":"El operador conoce el diagrama de inspección de su máquina","is_required":true},
+    {"key":"p_q11","label":"El operador conoce el uso de calibradores y sus registros","is_required":true},
+    {"key":"p_q12","label":"El operador conoce e interpreta su Standard Cell","is_required":true},
+    {"key":"p_q13","label":"El operador interpreta sus ayudas visuales","is_required":true},
+    {"key":"p_q14","label":"El operador conoce el mantenimiento de su máquina (TPM)","is_required":true},
+    {"key":"p_q15","label":"El operador describe, observa y practica su operación","is_required":true}
+  ],
+
+  "Q": [
+    {"key":"q_q1","label":"El operador conoce la política de Calidad","is_required":true},
+    {"key":"q_q2","label":"¿Conoce, ubica y registra los parámetros de la hoja de puesta en marcha? (adjuntar copia)","is_required":true},
+    {"key":"q_q3","label":"El operador conoce y realiza de forma correcta la calibración de los equipos de medición","is_required":true},
+    {"key":"q_q4","label":"El operador registra correctamente los valores de la primera muestra","is_required":true},
+    {"key":"q_q5","label":"El operador conoce el proceso de liberación de la primera pieza","is_required":true},
+    {"key":"q_q6","label":"El operador conoce y sabe interpretar el diagrama de inspección o plan de control","is_required":true},
+    {"key":"q_q7","label":"El operador conoce y realiza de forma correcta la Masterización de la máquina","is_required":true},
+    {"key":"q_q8","label":"El operador identifica piezas rechazadas y sabe cómo manejarlas","is_required":true},
+    {"key":"q_q9","label":"El operador sabe manejar el material no conforme (sospechoso, retrabajo y scrap)","is_required":true},
+    {"key":"q_q10","label":"El operador conoce los defectos del proceso de su operación","is_required":true},
+    {"key":"q_q11","label":"El operador cuenta con ayuda visual para identificar defectos y conoce el procedimiento","is_required":true},
+    {"key":"q_q12","label":"El operador entiende lo que significa FTQ (Calidad a la primera vez)","is_required":true},
+    {"key":"q_q13","label":"Conoce cómo se integran FTQ, quejas de clientes y scrap en los resultados del departamento","is_required":true},
+    {"key":"q_q14","label":"El operador puede proponer ideas de mejora para ahorro en producción","is_required":false},
+    {"key":"q_q15","label":"Conoce llenado de documentos, plan de reacción, gráficas de control y trazabilidad","is_required":true},
+    {"key":"q_q16","label":"El operador sabe qué es un poka-yoke","is_required":true},
+    {"key":"q_q17","label":"El operador conoce la certificación IATF 16949","is_required":true}
+  ],
+
+  "VC": [
+    {"key":"vc_q1","label":"El operador conoce el nivel de requerimiento de producción","is_required":true},
+    {"key":"vc_q2","label":"El operador conoce y sabe llenar el formato de hora por hora (LTM)","is_required":true},
+    {"key":"vc_q3","label":"¿Está informado sobre las metas del área de producción?","is_required":false},
+    {"key":"vc_q4","label":"¿Está informado sobre las quejas de cliente en su área?","is_required":false}
+  ],
+
+  "resultado": [
+    {"key":"resultado_global","label":"Resultado","is_required":true},
+    {"key":"comentarios","label":"Comentarios","is_required":false}
+  ]
+}

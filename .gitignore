@@ -1,0 +1,44 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+.eggs/
+*.manifest
+*.spec
+
+# --- Entorno virtual ---
+.env
+.venv/
+venv/
+ENV/
+env/
+instance/
+
+# --- Config local ---
+*.sqlite3
+*.db
+*.log
+
+# --- IDEs / Editores ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Node / Frontend (si llegas a tener) ---
+node_modules/
+dist/
+build/
+
+# --- Exportados ---
+# PDFs generados por el sistema
+instance/exports/
+instance/signatures/
+
+# --- Alembic ---
+migrations/versions/*.pyc
+migrations/versions/__pycache__/

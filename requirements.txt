@@ -1,0 +1,12 @@
+Flask==3.0.3
+Flask-Cors==4.0.1
+SQLAlchemy==2.0.35
+psycopg2-binary==2.9.9
+alembic==1.13.2
+python-dotenv==1.0.1
+pydantic==2.9.2
+pytz==2024.1
+WeasyPrint==62.3      # (para PDF, instalaremos lib deps en server luego)
+Pillow==10.4.0        # (si guardamos firmas como imágenes)
+gunicorn==22.0.0
+reportlab==3.6.14      # (si generamos PDFs complejos)

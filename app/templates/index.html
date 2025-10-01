@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Evaluación de Certificación — HR-01-F08</title>
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#0a2540">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>Evaluación de Certificación <small class="muted">HR-01-F08 R02</small></h1>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="home">Inicio</button>
+      <button class="tab-btn" data-tab="admin">Panel administrador</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- HOME / LANDING -->
+    <section id="tab-home" class="tab active">
+      <div class="hero">
+        <h2>¿Qué deseas hacer?</h2>
+        <div class="hero-actions">
+          <div class="card hero-card">
+            <h3>Nueva evaluación</h3>
+            <p class="muted">Crea una evaluación y pasa directo al editor.</p>
+            <div class="row gap">
+              <input id="home-folio" placeholder="Folio (opcional, ej. EC-0001)" />
+              <button id="home-empezar">Empezar nueva evaluación</button>
+            </div>
+            <p id="home-msg" class="muted"></p>
+          </div>
+          <div class="card hero-card">
+            <h3>Panel administrador</h3>
+            <p class="muted">Continuar pendientes, revisar completadas y exportar PDF.</p>
+            <button id="home-admin">Ir al panel</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EDITOR (ya no aparece en el menú; se muestra automáticamente) -->
+    <section id="tab-editor" class="tab">
+      <div id="editor" class="card">
+        <div class="row gap">
+          <div class="grow">
+            <h3 id="ed-title">Editor</h3>
+            <p id="ed-status" class="muted"></p>
+          </div>
+          <div class="row gap">
+            <button id="btn-guardar">Guardar</button>
+            <button id="btn-completar">Marcar Completada</button>
+          </div>
+        </div>
+
+        <!-- Datos generales -->
+        <details open class="blk">
+          <summary>Datos generales</summary>
+          <div id="general-fields" class="grid2"></div>
+        </details>
+
+        <!-- Secciones S/P/Q/VC -->
+        <details class="blk"><summary>S — En entrenamiento</summary><div id="sec-S"></div></details>
+        <details class="blk"><summary>P — Seguro/calidad, no en tiempo ciclo</summary><div id="sec-P"></div></details>
+        <details class="blk"><summary>Q — Seguro, calidad y tiempo ciclo</summary><div id="sec-Q"></div></details>
+        <details class="blk"><summary>V/C — Domina y puede enseñar</summary><div id="sec-VC"></div></details>
+
+        <!-- Resultado -->
+        <details class="blk"><summary>Resultado</summary><div id="resultado-box" class="grid2"></div></details>
+
+        <!-- Firmas -->
+        <details class="blk"><summary>Firmas</summary><div id="firmas-box" class="row gap"></div></details>
+      </div>
+
+      <!-- MODAL FIRMA -->
+      <div id="modal-firma" class="modal hidden">
+        <div class="modal-content">
+          <h3 id="firma-title">Firma</h3>
+          <label>Nombre del firmante
+            <input id="firma-nombre" placeholder="Nombre y Apellido">
+          </label>
+          <div class="sig-wrap">
+            <canvas id="sig-canvas"></canvas>
+          </div>
+          <div class="row gap">
+            <button id="sig-clear">Borrar</button>
+            <button id="sig-guardar">Guardar Firma</button>
+            <button id="sig-cancel">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN -->
+    <section id="tab-admin" class="tab">
+      <div class="toolbar">
+        <button id="btn-refresh-pendientes">Actualizar pendientes</button>
+        <button id="btn-refresh-completadas">Actualizar completadas</button>
+      </div>
+      <div class="admin-grid">
+        <div>
+          <h3>Pendientes</h3>
+          <ul id="list-pendientes" class="list"></ul>
+        </div>
+        <div>
+          <h3>Completadas</h3>
+          <ul id="list-completadas" class="list"></ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/static/sw.js");}</script>
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/signature.js"></script>
+  <script src="/static/js/ui.js"></script>
+</body>
+</html>

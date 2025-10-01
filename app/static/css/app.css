@@ -1,0 +1,49 @@
+:root { --bg:#0a2540; --fg:#fff; --muted:#9aa4b2; --card:#0f2b52; --border:#1f3a6b; }
+*{box-sizing:border-box;font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+html,body{height:100%;margin:0;background:#061a30;color:#e5ecf5}
+.app-header{background:var(--bg);color:var(--fg);padding:16px 20px;position:sticky;top:0;z-index:2}
+.tabs{display:flex;gap:8px;margin-top:8px}
+.tab-btn{background:#13335f;color:#e5ecf5;border:1px solid var(--border);border-radius:10px;padding:8px 14px}
+.tab-btn.active{background:#1d4ed8}
+main{padding:16px}
+.tab{display:none}
+.tab.active{display:block}
+.toolbar{display:flex;gap:10px;justify-content:flex-end;margin-bottom:10px}
+.list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+label{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+input,select,textarea{padding:10px;border-radius:8px;border:1px solid var(--border);background:#0b2345;color:#e5ecf5}
+input[type="date"]{min-height:42px}
+.row{display:flex;flex-wrap:wrap}
+.gap{gap:10px}
+.grow{flex:1}
+button{padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:#1e40af;color:#e5ecf5}
+button:disabled{opacity:0.6}
+.muted{color:var(--muted)}
+.item{display:flex;justify-content:space-between;align-items:center;padding:12px;border:1px solid var(--border);border-radius:12px;background:#0c2244}
+.item small{color:var(--muted)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center}
+.modal.hidden{display:none}
+.modal-content{width:min(96vw,720px);background:#0c2244;border:1px solid var(--border);border-radius:14px;padding:16px}
+.sig-wrap{border:1px dashed var(--border);border-radius:8px;overflow:hidden;background:#09203f}
+#sig-canvas{width:100%;height:240px;touch-action:none;display:block}
+
+/* Editor */
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.blk{margin-top:12px}
+.qrow{display:grid;grid-template-columns:3fr 2.4fr 2fr;gap:10px;align-items:center;border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;background:#0c2244}
+.qlabel{font-weight:600}
+.qrev{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.rev{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.rev small{color:var(--muted)}
+.qobs input{width:100%}
+.qbulk{display:flex;gap:8px}
+.qbulk button{padding:6px 10px}
+
+/* Home */
+.hero{display:grid;gap:16px}
+.hero-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.hero-card input{flex:1;min-width:160px}
+
+/* Admin layout */
+.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}

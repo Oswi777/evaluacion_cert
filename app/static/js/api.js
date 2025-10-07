@@ -4,14 +4,15 @@ async function safeJson(res){
 }
 
 const API = {
-  async createEvaluation(folio) {
+  async createEvaluationByNoEmpleado(no_empleado) {
     const res = await fetch("/api/evaluaciones/create", {
       method: "POST",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ folio })
+      body: JSON.stringify({ no_empleado })
     });
     return safeJson(res);
   },
+
   async saveResponses(id, responses) {
     const res = await fetch(`/api/evaluaciones/${id}/responses`, {
       method: "POST",
@@ -40,12 +41,14 @@ const API = {
     const res = await fetch(`/api/evaluaciones/${id}`, { method: "DELETE" });
     return safeJson(res);
   },
-  async listPendientes() {
-    const res = await fetch("/api/evaluaciones/pendientes");
+  async listPendientes(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    const res = await fetch(`/api/evaluaciones/pendientes${qs ? `?${qs}` : ""}`);
     return safeJson(res);
   },
-  async listCompletadas() {
-    const res = await fetch("/api/evaluaciones/completadas");
+  async listCompletadas(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    const res = await fetch(`/api/evaluaciones/completadas${qs ? `?${qs}` : ""}`);
     return safeJson(res);
   },
   exportUrl(id) {

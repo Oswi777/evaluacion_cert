@@ -10,15 +10,53 @@ from .db import init_engine_and_session, Base, get_engine
 from .controllers.evaluation_api import bp as evaluation_bp
 from .controllers.ui import bp as ui_bp  # UI
 
+
+def _ensure_instance_folders(app: Flask):
+    Path(app.instance_path).mkdir(parents=True, exist_ok=True)
+    (Path(app.instance_path) / "exports").mkdir(parents=True, exist_ok=True)
+    (Path(app.instance_path) / "signatures").mkdir(parents=True, exist_ok=True)
+
+
+def _absolutize_sqlite_url_if_needed(app: Flask):
+    """
+    Si DATABASE_URL es 'sqlite:///algo.db' o 'sqlite:///instance/dev.db',
+    la convertimos a absoluta usando app.instance_path para evitar
+    'sqlite3.OperationalError: unable to open database file'.
+    """
+    url = app.config.get("DATABASE_URL", "")
+    if not url.lower().startswith("sqlite:///"):
+        return
+
+    # Parte después de 'sqlite:///'
+    path_part = url[10:]  # len("sqlite:///") = 10
+    # Si ya parece absoluta (ej. 'C:/...' o '/...' en POSIX), dejamos igual.
+    p = Path(path_part)
+    if p.is_absolute():
+        return
+
+    # Si es relativa, la anclamos en instance/
+    # - si dieron 'instance/dev.db', respetamos el nombre del archivo
+    # - si dieron 'dev.db', lo movemos a instance/dev.db
+    if p.name:  # nombre de archivo
+        abs_path = (Path(app.instance_path) / p.name).resolve()
+    else:
+        # Caso raro sin nombre; usamos dev.db por defecto
+        abs_path = (Path(app.instance_path) / "dev.db").resolve()
+
+    # En URLs de sqlite para Windows funciona: sqlite:///C:/ruta/archivo.db
+    app.config["DATABASE_URL"] = f"sqlite:///{abs_path.as_posix()}"
+
+
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(load_config())
     CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-    # Asegura carpetas usando app.instance_path (correcto en Flask)
-    Path(app.instance_path).mkdir(parents=True, exist_ok=True)
-    Path(Path(app.instance_path) / "exports").mkdir(parents=True, exist_ok=True)
-    Path(Path(app.instance_path) / "signatures").mkdir(parents=True, exist_ok=True)
+    # Asegura carpetas dentro de instance/
+    _ensure_instance_folders(app)
+
+    # Normaliza ruta SQLite a absoluta si hace falta
+    _absolutize_sqlite_url_if_needed(app)
 
     # DB
     init_engine_and_session(app.config["DATABASE_URL"])

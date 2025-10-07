@@ -1,5 +1,5 @@
 from __future__ import annotations
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Iterable, List, Optional
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -11,7 +11,8 @@ class EvaluationRepository:
     @staticmethod
     def new(folio: str) -> Evaluation:
         with get_session() as s:
-            ev = Evaluation(folio=folio, status=EvalStatus.PENDIENTE, created_at=datetime.utcnow())
+            # UTC aware para evitar comparaciones naive/aware en filtros
+            ev = Evaluation(folio=folio, status=EvalStatus.PENDIENTE, created_at=datetime.now(timezone.utc))
             s.add(ev)
             s.flush()
             return ev

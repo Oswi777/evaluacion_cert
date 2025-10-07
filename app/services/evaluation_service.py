@@ -22,16 +22,61 @@ from reportlab.platypus import (
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
 
+from datetime import datetime, timezone
+import pytz
+
 BASE_DIR = Path(__file__).resolve().parent.parent  # .../app
 TPL_PATH = BASE_DIR / "data" / "template_hr01f08.json"
 
+LOCAL_TZ = None  # cache
+
+def _tz():
+    global LOCAL_TZ
+    if LOCAL_TZ is None:
+        LOCAL_TZ = pytz.timezone(current_app.config.get("DEFAULT_TZ", "America/Mexico_City"))
+    return LOCAL_TZ
+
+def to_local(dt_utc: datetime) -> datetime:
+    if dt_utc.tzinfo is None:
+        dt_utc = dt_utc.replace(tzinfo=timezone.utc)
+    return dt_utc.astimezone(_tz())
+
+def to_local_iso(dt_utc: datetime) -> str:
+    return to_local(dt_utc).isoformat(timespec="seconds")
+
+def local_day_window(from_yyyy_mm_dd: str | None, to_yyyy_mm_dd: str | None):
+    """Devuelve (desde_local_utc, hasta_local_utc) para filtrar por fecha local inclusiva.
+       Si from == to (mismo día), toma 00:00 a 23:59:59.999 de ese día local."""
+    tz = _tz()
+    today = datetime.now(tz).date()
+
+    if from_yyyy_mm_dd:
+        y,m,d = map(int, from_yyyy_mm_dd.split("-"))
+        dfrom_local = datetime(y,m,d,0,0,0, tzinfo=tz)
+    else:
+        dfrom_local = datetime(today.year, today.month, today.day, 0,0,0, tzinfo=tz)
+
+    if to_yyyy_mm_dd:
+        y,m,d = map(int, to_yyyy_mm_dd.split("-"))
+        # fin de día local → sumar 1 día y usar inicio de día siguiente como límite abierto
+        dto_local = datetime(y,m,d,0,0,0, tzinfo=tz)
+        dto_local = dto_local.replace(hour=0, minute=0, second=0, microsecond=0)
+        dto_local = dto_local + timedelta(days=1)
+    else:
+        # si no hay "to", usamos dfrom + 1 día
+        from datetime import timedelta
+        dto_local = dfrom_local + timedelta(days=1)
+
+    # Convertimos a UTC para comparar con created_at (que está en UTC)
+    dfrom_utc = dfrom_local.astimezone(timezone.utc)
+    dto_utc   = dto_local.astimezone(timezone.utc)
+    return dfrom_utc, dto_utc
 
 @dataclass
 class ValidationResult:
     ok: bool
     missing_required: List[str]
     missing_sign_roles: List[str]
-
 
 class EvaluationService:
     # ---------- Helpers básicos ----------
@@ -49,23 +94,20 @@ class EvaluationService:
         path.mkdir(parents=True, exist_ok=True)
         return path
 
-    # ---------- Crear evaluación y sembrar respuestas ----------
+    # ---------- Crear evaluación ----------
     @staticmethod
-    def create_evaluation(folio: str):
-        ev = EvaluationRepository.get_by_folio(folio)
-        if ev:
-            return ev
-
-        ev = EvaluationRepository.new(folio)
-
-        tpl = EvaluationService._load_template()
+    def _seed_from_template(ev_id: int, tpl: dict, preset: dict | None = None):
+        """Crea/actualiza todas las respuestas a partir de la plantilla.
+           'preset' permite enviar valores iniciales (p.ej. no_empleado)."""
+        preset = preset or {}
         seed_items: List[dict] = []
 
         # Generales
         for g in tpl.get("general", []):
+            key = g["key"]
             seed_items.append({
-                "field_key": g["key"],
-                "value": "",
+                "field_key": key,
+                "value": str(preset.get(key, "")),
                 "is_required": bool(g.get("is_required", False))
             })
 
@@ -88,7 +130,35 @@ class EvaluationService:
                 "is_required": bool(r.get("is_required", False))
             })
 
-        EvaluationRepository.upsert_responses(ev.id, seed_items)
+        EvaluationRepository.upsert_responses(ev_id, seed_items)
+
+    @staticmethod
+    def create_by_no_empleado(no_empleado: str):
+        """Genera folio con fecha local + no_empleado y pre-llena el campo 'no_empleado'."""
+        tz = _tz()
+        now_local = datetime.now(tz)
+        folio = f"EC-{now_local.strftime('%Y%m%d')}-{no_empleado}"
+
+        # Si ya existe, reusar (idempotente)
+        ev = EvaluationRepository.get_by_folio(folio)
+        if ev:
+            return ev
+
+        ev = EvaluationRepository.new(folio)
+        tpl = EvaluationService._load_template()
+        # pre-llenamos 'no_empleado'
+        EvaluationService._seed_from_template(ev.id, tpl, preset={"no_empleado": no_empleado})
+        return ev
+
+    # Compat: creación por folio manual (no usada en UI actual, pero la dejamos)
+    @staticmethod
+    def create_evaluation(folio: str):
+        ev = EvaluationRepository.get_by_folio(folio)
+        if ev:
+            return ev
+        ev = EvaluationRepository.new(folio)
+        tpl = EvaluationService._load_template()
+        EvaluationService._seed_from_template(ev.id, tpl)
         return ev
 
     # ---------- Reglas de negocio ----------
@@ -145,7 +215,7 @@ class EvaluationService:
                 EvaluationRepository.set_status(evaluation_id, EvalStatus.PENDIENTE)
             return False, vr
 
-    # ---------- Exportación PDF (maquetado estilo formato original) ----------
+    # ---------- Exportación PDF (igual que tenías, con nombre de archivo por folio) ----------
     @staticmethod
     def export_pdf(evaluation_id: int) -> str:
         ev = EvaluationRepository.get_with_children(evaluation_id)
@@ -156,7 +226,7 @@ class EvaluationService:
         resp = {r.field_key: (r.value or "") for r in ev.responses}
 
         exports_dir = EvaluationService._instance_dir("exports")
-        out_path = exports_dir / f"evaluacion_{evaluation_id}.pdf"
+        out_path = exports_dir / f"{ev.folio or f'evaluacion_{evaluation_id}'}.pdf"
 
         doc = SimpleDocTemplate(
             str(out_path),
@@ -192,12 +262,12 @@ class EvaluationService:
                         style=[("LINEABOVE", (0,0), (-1,-1), 0.8, colors.black)]) ,
                   Spacer(1, 1*mm)]
 
-        # Datos generales en 2 columnas
+        # Datos generales (ajusta nombres a los de tu plantilla)
         def cell(k, label):
             return Paragraph(f"<b>{label}:</b> {resp.get(k,'')}", P)
 
         left_rows = [
-            [cell("nombre_operador","Nombre del operador")],
+            [cell("nombre","Nombre del operador")],
             [cell("area","Área")],
             [cell("operacion","Operación")],
             [cell("no_operacion","No. Operación")],
@@ -242,15 +312,13 @@ class EvaluationService:
                 ("LEFTPADDING", (1,1), (1,-1), 3),
                 ("RIGHTPADDING", (1,1), (1,-1), 3),
             ]
-            if highlight:
-                style += [("BACKGROUND", (0,0), (-1,0), colors.HexColor("#e9e9e9"))]
             t.setStyle(TableStyle(style))
             return t
 
-        story += [section_table("S", "Conoce los pasos pero requiere supervisión. (en entrenamiento)", True), Spacer(1,2*mm)]
-        story += [section_table("P", "Puede ejecutar el trabajo con seguridad y calidad pero no en tiempo ciclo.", True), Spacer(1,2*mm)]
-        story += [section_table("Q", "Puede ejecutar el trabajo con Seguridad, Calidad y en el Tiempo ciclo.", True), Spacer(1,2*mm)]
-        story += [section_table("VC", "Domina la operación y puede enseñar a otros.", True), Spacer(1,3*mm)]
+        story += [section_table("S", "Conoce los pasos pero requiere supervisión. (en entrenamiento)"), Spacer(1,2*mm)]
+        story += [section_table("P", "Puede ejecutar el trabajo con seguridad y calidad pero no en tiempo ciclo."), Spacer(1,2*mm)]
+        story += [section_table("Q", "Puede ejecutar el trabajo con Seguridad, Calidad y en el Tiempo ciclo."), Spacer(1,2*mm)]
+        story += [section_table("VC", "Domina la operación y puede enseñar a otros."), Spacer(1,3*mm)]
 
         # Resultado
         result = (resp.get("resultado_global","") or "").strip()
@@ -273,7 +341,7 @@ class EvaluationService:
         ]))
         story += [res_tbl, Spacer(1, 4*mm)]
 
-        # Firmas (2 x 3) — versión segura (cada firma es una tabla de 2 filas)
+        # Firmas
         label_map = {
             "jefe_inmediato":"Jefe Inmediato",
             "ing_calidad":"Ing. de Calidad",
@@ -290,15 +358,12 @@ class EvaluationService:
             s = sig_by_role.get(role_key) if role_key else None
             cell_w, cell_h = 65*mm, 26*mm
 
-            # Caja de la firma (con imagen si existe)
             if s and s.image_path and os.path.exists(s.image_path):
                 img = Image(str(s.image_path))
-                # limita tamaño para que no se desborde
                 img._restrictSize(cell_w-6, cell_h-10)
                 img.hAlign = "CENTER"
                 box = Table([[img]], colWidths=[cell_w], rowHeights=[cell_h])
             else:
-                # caja vacía
                 box = Table([[Paragraph("", P)]], colWidths=[cell_w], rowHeights=[cell_h])
 
             box.setStyle(TableStyle([
@@ -312,7 +377,6 @@ class EvaluationService:
             ]))
 
             label = Paragraph(f"<font size=8>{lbl}{(' — ' + s.signer_name) if s and s.signer_name else ''}</font>", P)
-            # Tabla interna 2 filas: [caja][leyenda]
             cell = Table([[box],[label]], colWidths=[cell_w], rowHeights=[cell_h, 6*mm])
             cell.setStyle(TableStyle([("VALIGN",(0,0),(-1,-1),"TOP")]))
             return cell

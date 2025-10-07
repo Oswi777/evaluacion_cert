@@ -6,6 +6,7 @@
   <title>Evaluación de Certificación — HR-01-F08</title>
   <link rel="manifest" href="/static/manifest.json">
   <meta name="theme-color" content="#0a2540">
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/static/css/app.css">
 </head>
 <body>
@@ -25,9 +26,9 @@
         <div class="hero-actions">
           <div class="card hero-card">
             <h3>Nueva evaluación</h3>
-            <p class="muted">Crea una evaluación y pasa directo al editor.</p>
+            <p class="muted">Ingresa el <b>No. de empleado</b> (obligatorio). Se generará el folio automáticamente.</p>
             <div class="row gap">
-              <input id="home-folio" placeholder="Folio (opcional, ej. EC-0001)" />
+              <input id="home-noemp" placeholder="No. de empleado (obligatorio)" />
               <button id="home-empezar">Empezar nueva evaluación</button>
             </div>
             <p id="home-msg" class="muted"></p>
@@ -41,7 +42,7 @@
       </div>
     </section>
 
-    <!-- EDITOR (ya no aparece en el menú; se muestra automáticamente) -->
+    <!-- EDITOR -->
     <section id="tab-editor" class="tab">
       <div id="editor" class="card">
         <div class="row gap">
@@ -95,10 +96,31 @@
 
     <!-- ADMIN -->
     <section id="tab-admin" class="tab">
+      <div class="card" style="margin-bottom:12px">
+        <h3>Filtros</h3>
+        <div class="row gap">
+          <label class="grow">No. de empleado
+            <input id="flt-noemp" placeholder="ej. 113909">
+          </label>
+          <label>Desde
+            <input id="flt-from" type="date">
+          </label>
+          <label>Hasta
+            <input id="flt-to" type="date">
+          </label>
+        </div>
+        <div class="toolbar" style="justify-content:flex-start;margin-top:10px">
+          <button id="btn-aplicar-filtros">Aplicar filtros</button>
+          <button id="btn-limpiar-filtros" style="background:#0b2545">Limpiar</button>
+          <span class="muted" id="flt-state"></span>
+        </div>
+      </div>
+
       <div class="toolbar">
         <button id="btn-refresh-pendientes">Actualizar pendientes</button>
         <button id="btn-refresh-completadas">Actualizar completadas</button>
       </div>
+
       <div class="admin-grid">
         <div>
           <h3>Pendientes</h3>

@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from flask import Flask, jsonify
 from flask_cors import CORS
+from sqlalchemy import inspect
 
 from .config import load_config
 from .db import init_engine_and_session, Base, get_engine
@@ -11,40 +12,48 @@ from .controllers.evaluation_api import bp as evaluation_bp
 from .controllers.ui import bp as ui_bp  # UI
 
 
-def _ensure_instance_folders(app: Flask):
+def _ensure_instance_dirs(app: Flask):
+    """
+    Crea las carpetas necesarias dentro de instance/:
+    - exports/   (PDFs)
+    - signatures/ (imágenes de firma)
+    """
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
-    (Path(app.instance_path) / "exports").mkdir(parents=True, exist_ok=True)
-    (Path(app.instance_path) / "signatures").mkdir(parents=True, exist_ok=True)
+    Path(Path(app.instance_path) / "exports").mkdir(parents=True, exist_ok=True)
+    Path(Path(app.instance_path) / "signatures").mkdir(parents=True, exist_ok=True)
 
 
-def _absolutize_sqlite_url_if_needed(app: Flask):
+def _maybe_create_tables():
     """
-    Si DATABASE_URL es 'sqlite:///algo.db' o 'sqlite:///instance/dev.db',
-    la convertimos a absoluta usando app.instance_path para evitar
-    'sqlite3.OperationalError: unable to open database file'.
+    Crea las tablas si no existen (primer arranque).
+    Si la variable de entorno FORCE_DB_CREATE == "true", fuerza create_all()
+    incluso si ya detecta tablas.
+
+    Nota Supabase:
+    - Para la PRIMERA creación en producción, usa conexión Direct (5432)
+      en DATABASE_URL o define FORCE_DB_CREATE=true temporalmente.
+    - En runtime normal, usa Transaction Pooler (6543).
     """
-    url = app.config.get("DATABASE_URL", "")
-    if not url.lower().startswith("sqlite:///"):
-        return
+    engine = get_engine()
+    inspector = inspect(engine)
+    force = os.getenv("FORCE_DB_CREATE", "").lower() in ("1", "true", "yes")
 
-    # Parte después de 'sqlite:///'
-    path_part = url[10:]  # len("sqlite:///") = 10
-    # Si ya parece absoluta (ej. 'C:/...' o '/...' en POSIX), dejamos igual.
-    p = Path(path_part)
-    if p.is_absolute():
-        return
+    try:
+        have_evals = inspector.has_table("evaluations")
+        have_resp = inspector.has_table("evaluation_responses")
+        have_sigs = inspector.has_table("signatures")
 
-    # Si es relativa, la anclamos en instance/
-    # - si dieron 'instance/dev.db', respetamos el nombre del archivo
-    # - si dieron 'dev.db', lo movemos a instance/dev.db
-    if p.name:  # nombre de archivo
-        abs_path = (Path(app.instance_path) / p.name).resolve()
-    else:
-        # Caso raro sin nombre; usamos dev.db por defecto
-        abs_path = (Path(app.instance_path) / "dev.db").resolve()
-
-    # En URLs de sqlite para Windows funciona: sqlite:///C:/ruta/archivo.db
-    app.config["DATABASE_URL"] = f"sqlite:///{abs_path.as_posix()}"
+        if force or not (have_evals and have_resp and have_sigs):
+            print("🧱 Creando tablas (create_all). FORCE_DB_CREATE =", force)
+            Base.metadata.create_all(bind=engine)
+        else:
+            print("✅ Tablas ya existen. No se ejecuta create_all().")
+    except Exception as e:
+        # No interrumpas el arranque si la verificación falla (por pooler),
+        # pero deja trazas claras en logs.
+        import traceback
+        print("⚠️  No se pudo verificar/crear tablas automáticamente.")
+        traceback.print_exc()
 
 
 def create_app():
@@ -52,21 +61,17 @@ def create_app():
     app.config.from_mapping(load_config())
     CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-    # Asegura carpetas dentro de instance/
-    _ensure_instance_folders(app)
-
-    # Normaliza ruta SQLite a absoluta si hace falta
-    _absolutize_sqlite_url_if_needed(app)
+    # Estructura instance/
+    _ensure_instance_dirs(app)
 
     # DB
     init_engine_and_session(app.config["DATABASE_URL"])
 
-    # IMPORTA MODELOS ANTES DE create_all
+    # Importa modelos antes de create_all
     from .models import Evaluation, EvaluationResponse, Signature  # noqa
 
-    # Crea tablas en dev (en prod usar Alembic)
-    with get_engine().connect() as conn:
-        Base.metadata.create_all(bind=conn)
+    # Crea tablas si no existen (o fuerza con env var)
+    _maybe_create_tables()
 
     # Blueprints
     app.register_blueprint(evaluation_bp, url_prefix="/api/evaluaciones")
@@ -79,7 +84,8 @@ def create_app():
     # Siempre responde JSON en errores
     @app.errorhandler(Exception)
     def handle_exceptions(e):
-        import traceback; traceback.print_exc()
+        import traceback
+        traceback.print_exc()
         code = getattr(e, "code", 500)
         return jsonify({"error": str(e), "type": e.__class__.__name__}), code
 

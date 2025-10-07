@@ -17,7 +17,7 @@
     ctx.scale(ratio, ratio);
     ctx.lineWidth = 2;
     ctx.lineCap = "round";
-    ctx.strokeStyle = "#000000ff";
+    ctx.strokeStyle = "#000";
   }
 
   function getPos(e){

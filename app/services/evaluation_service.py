@@ -324,7 +324,7 @@ class EvaluationService:
         result = (resp.get("resultado_global","") or "").strip()
         result_opts = tpl.get("meta", {}).get("result_options", ["No aprueba","Re-entrenamiento","Re-ubicación","Aprobado"])
         def box(label):
-            mark = "■" if label.lower()==result.lower() else "□"
+            mark = "■" if label.lower()==result.lower() else "_"
             return Paragraph(f"{mark} {label}", P)
         res_tbl = Table([
             [Paragraph("<b>Resultado</b>", H2)],

@@ -9,4 +9,4 @@ pytz==2024.1
 WeasyPrint==62.3      
 Pillow==10.4.0        
 gunicorn==22.0.0
-reportlab==3.6.14      
+reportlab==3.6.13     

@@ -1,46 +1,32 @@
-# ============================================================
-# Render Blueprint – Evaluación de Certificación (HR-01-F08)
-# ============================================================
-# Proyecto Flask con almacenamiento externo (Supabase PostgreSQL)
-# Autor: Osvaldo Contreras
-# Fecha: 2025-10-07
-# ============================================================
-
 services:
   - type: web
     name: evaluacion-certificacion
-    env: python
-    plan: free  # Puedes cambiar a "starter" si necesitas más RAM o uptime garantizado
-    buildCommand: |
-      pip install --upgrade pip
-      pip install -r requirements.txt
-    startCommand: |
-      gunicorn run:app --workers 2 --threads 4 --timeout 120
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -w 2 -k gthread -b 0.0.0.0:$PORT run:app
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.8
+
       # Flask
       - key: FLASK_ENV
         value: production
       - key: FLASK_APP
         value: run.py
-      - key: PORT
-        value: 10000  # Render asigna un puerto automáticamente, Flask usará este
 
-      # Zona horaria local
+      # TZ local
       - key: DEFAULT_TZ
         value: America/Mexico_City
 
-      
-      # Ruta de logs y directorios internos
-      - key: INSTANCE_PATH
-        value: /opt/render/project/src/instance
-
-      # Seguridad básica
+      # Seguridad
       - key: SECRET_KEY
         generateValue: true
 
-    autoDeploy: true
+      # Supabase (usa el Transaction Pooler; típico puerto 6543)
+      - key: DATABASE_URL
+        value: postgresql://postgres.yqitswifdjjzitzobtyx:Saltillo07@aws-1-us-east-2.pooler.supabase.com:6543/postgres
 
-    # Render expone el puerto dinámicamente, Flask lo debe leer de PORT
+
     healthCheckPath: /api/evaluaciones/diag
-    runtime: python3.11
-    region: oregon  
+    autoDeploy: true
